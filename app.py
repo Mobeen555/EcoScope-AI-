@@ -67,33 +67,6 @@ from environment import (
     utc_now
 )
 
-ARTWORK_FILES = ["5Foay.jpg", "VvwKz.jpg", "f9fOM.jpg", "GtSha.jpg", "7k1LB.jpg", "HwiJj.jpg", "oD9yE.jpg", "zLUGG.jpg"]
-
-
-def artwork_path(name):
-    if name not in ARTWORK_FILES:
-        return None
-    for directory in [ROOT / "assets", ROOT, ROOT / "ecoscope_ai" / "assets"]:
-        if directory.is_dir():
-            path = next((p for p in directory.iterdir() if p.is_file() and p.name.casefold() == name.casefold()), None)
-            if path:
-                return path
-    return None
-
-
-def show_artwork(name, caption=None, width="stretch"):
-    """Serve local artwork through Streamlit's media handler, not HTML data URLs."""
-    path = artwork_path(name)
-    if path is None:
-        st.warning(f"Missing image: assets/{name}. Upload the supplied assets folder beside app.py.")
-        return False
-    try:
-        st.image(str(path), caption=caption, width=width)
-    except (OSError, ValueError):
-        st.warning(f"Image could not be read: {name}. Replace it with the supplied original file.")
-        return False
-    return True
-
 
 def inject_theme():
     st.html("""<style>
@@ -116,7 +89,6 @@ def inject_theme():
     [data-testid='stBaseButton-primary']{background:linear-gradient(105deg,#68E0C3,#9EADF9)!important;color:#102232!important;border:0!important}
     [data-testid='stBaseButton-primary'] p{color:#102232!important;font-weight:700}
     button:disabled{opacity:.65!important}
-    .art-missing{padding:18px;background:#23324B;color:#F5CF8C;font-size:12px;min-height:58px}
     html,body,[class*='css']{font-family:'DM Sans',sans-serif}
     h1,h2,h3{font-family:'Manrope',sans-serif!important;letter-spacing:-.025em}
     [data-testid='stHeader']{background:#090E1B}
@@ -129,27 +101,22 @@ def inject_theme():
     .stButton>button[kind='primary']{background:linear-gradient(105deg,#68E0C3,#9EADF9);color:#102232;border:0;font-weight:700;box-shadow:0 5px 24px #5FE1C322}
     .stButton>button,.stDownloadButton>button{border-radius:11px;min-height:2.75rem}
     [data-testid='stVerticalBlockBorderWrapper']>div{border-radius:16px}
-    .eco-brand{display:flex;gap:11px;align-items:center;margin-bottom:18px}.eco-mark{width:42px;height:42px;display:grid;place-items:center;background:linear-gradient(140deg,#5FE1C3,#9085E8);border-radius:13px;color:#091421;font-size:26px;font-weight:800}
+    .eco-brand{display:flex;gap:11px;align-items:center;margin-bottom:18px}
     .eco-brand strong{font-family:Manrope,sans-serif;letter-spacing:-.6px;font-size:23px;color:#F2F6FF}.eco-brand small{display:block;font-size:10px;letter-spacing:1.7px;color:#82A2B9;text-transform:uppercase;margin-top:3px}
     .eyebrow{font-size:11px;letter-spacing:2.5px;font-weight:700;text-transform:uppercase;color:#74DEC6;margin-bottom:15px}
-    .eco-hero{border-radius:24px;padding:40px;min-height:275px;border:1px solid #344663;position:relative;overflow:hidden;background-size:cover;background-position:center}
+    .eco-hero{border-radius:24px;padding:40px;min-height:275px;border:1px solid #344663;position:relative;overflow:hidden;background:linear-gradient(140deg,#162338,#161A30)}
     .eco-hero h1{font-size:clamp(32px,3.5vw,52px);line-height:1.09;margin:10px 0 19px;color:#F6F8FF;max-width:700px}
     .eco-hero p{color:#C3D4E2;max-width:570px;font-size:15px;line-height:1.7}
     .pill{display:inline-block;border:1px solid #6FE6CB55;color:#9AF0DC;background:#18363D99;border-radius:30px;padding:5px 12px;font-size:11px;margin-right:7px;margin-top:10px}
-    .art-label{position:absolute;bottom:13px;right:18px;background:#09101FCC;color:#B2C6D8;font-size:10px;padding:4px 8px;border-radius:6px}
-    .eco-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:22px 0}.eco-card{border:1px solid #28354D;background:linear-gradient(150deg,#162338,#161A30);border-radius:18px;overflow:hidden;position:relative}.eco-card img{width:100%;height:150px;object-fit:cover;opacity:.83}.eco-card .body{padding:19px}.eco-card h3{font-size:19px;color:#EBF2FD;margin:0 0 9px}.eco-card p{font-size:13px;color:#AABDD0;line-height:1.65;margin:0}.eco-card .tag{font-size:10px;letter-spacing:1.6px;color:#69DCC1;display:block;margin-bottom:8px}.eco-card .credit{position:absolute;top:126px;right:10px;background:#0C132ABA;font-size:9px;padding:3px 6px;border-radius:4px;color:#D8E6F3}
-    .eco-strip{display:flex;align-items:center;gap:17px;border:1px solid #2A3850;background:#14203588;border-radius:16px;padding:17px;margin:20px 0}.eco-strip img{width:76px;height:76px;object-fit:contain;border-radius:12px;background:#E5EEF4;flex-shrink:0}.eco-strip strong{color:#F0F5FD;font-size:14px}.eco-strip p{font-size:13px;color:#C1D0E2;margin:3px 0 0}.eco-strip .unit{flex:1;display:flex;align-items:center;gap:12px}
+    .eco-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:22px 0}.eco-card{border:1px solid #28354D;background:linear-gradient(150deg,#162338,#161A30);border-radius:18px;overflow:hidden;position:relative}.eco-card .body{padding:19px}.eco-card h3{font-size:19px;color:#EBF2FD;margin:0 0 9px}.eco-card p{font-size:13px;color:#AABDD0;line-height:1.65;margin:0}.eco-card .tag{font-size:10px;letter-spacing:1.6px;color:#69DCC1;display:block;margin-bottom:8px}
+    .eco-strip{display:flex;align-items:center;gap:17px;border:1px solid #2A3850;background:#14203588;border-radius:16px;padding:17px;margin:20px 0}.eco-strip strong{color:#F0F5FD;font-size:14px}.eco-strip p{font-size:13px;color:#C1D0E2;margin:3px 0 0}.eco-strip .unit{flex:1;display:flex;align-items:center;gap:12px}
     .section-note{color:#9CB1C5;font-size:13px;line-height:1.7}.status-chip{display:inline-block;color:#A8EBD8;background:#123B3880;border:1px solid #286858;border-radius:20px;padding:5px 12px;font-size:11px;margin:6px 0 16px}
-    .module-banner{height:120px;border:1px solid #33475B;border-radius:18px;padding:23px 28px;background-size:cover;background-position:center;position:relative;margin:12px 0 23px}.module-banner h2{color:#F4F8FE;margin:0;font-size:26px}.module-banner p{color:#C8D8E7;font-size:12px;margin:7px 0}
+    .module-banner{min-height:100px;border:1px solid #33475B;border-radius:18px;padding:23px 28px;background:linear-gradient(140deg,#162338,#161A30);position:relative;margin:12px 0 23px}.module-banner h2{color:#F4F8FE;margin:0;font-size:26px}.module-banner p{color:#C8D8E7;font-size:12px;margin:7px 0}
     [data-testid='stDataFrame']{border:1px solid #29384D;border-radius:12px;overflow:hidden}
-    .st-key-art-hero,.st-key-art-banner,[class*='st-key-art-card-'],[class*='st-key-art-icon-']{border-radius:18px;background:linear-gradient(145deg,#162338,#161A30)}
-    .st-key-art-hero [data-testid='stImage'] img{height:340px;object-fit:cover;border-radius:16px}
-    .st-key-art-banner [data-testid='stImage'] img{height:135px;object-fit:cover;border-radius:12px}
-    [class*='st-key-art-card-'] [data-testid='stImage'] img{height:170px;object-fit:cover;border-radius:12px}
-    [class*='st-key-art-icon-'] [data-testid='stImage'] img{height:76px;object-fit:contain;border-radius:10px;background:#E5EEF4}
-    .art-copy h3{color:#EBF2FD;margin:4px 0 10px;font-size:19px}.art-copy p{color:#C1D0E2;font-size:13px;line-height:1.65}.art-copy .tag{color:#74DEC6;font-size:10px;letter-spacing:1.6px}
-    .art-copy strong{color:#F0F5FD}.art-copy .credit{color:#C1D0E2;font-size:10px}
-    @media(max-width:900px){.eco-grid{grid-template-columns:1fr}.eco-hero{padding:25px}.eco-strip{flex-direction:column;align-items:stretch}.eco-card img{height:170px}}
+    [class*='st-key-card-'],[class*='st-key-info-']{border-radius:18px;background:linear-gradient(145deg,#162338,#161A30)}
+    .card-copy h3{color:#EBF2FD;margin:4px 0 10px;font-size:19px}.card-copy p{color:#C1D0E2;font-size:13px;line-height:1.65}.card-copy .tag{color:#74DEC6;font-size:10px;letter-spacing:1.6px}
+    .card-copy strong{color:#F0F5FD}
+    @media(max-width:900px){.eco-grid{grid-template-columns:1fr}.eco-hero{padding:25px}.eco-strip{flex-direction:column;align-items:stretch}}
     </style>""")
 
 
@@ -165,51 +132,36 @@ def apply_drawing(drawing):
         st.session_state["drawing_error"] = str(exc)
 
 
-def banner(title, subtitle, image_name):
-    with st.container(border=True, key="art-banner"):
-        text_col, picture_col = st.columns([2.5, 1])
-        with text_col:
-            st.html(f"<div class='module-banner'><h2>{html.escape(title)}</h2><p>{html.escape(subtitle)}</p><span class='art-label'>Illustrative artwork</span></div>")
-        with picture_col:
-            show_artwork(image_name)
+def banner(title, subtitle):
+    st.html(f"<div class='module-banner'><h2>{html.escape(title)}</h2><p>{html.escape(subtitle)}</p></div>")
 
 
 def overview(run):
-    with st.container(border=True, key="art-hero"):
-        text_col, picture_col = st.columns([1.5, 1])
-        with text_col:
-            st.html("""<div class='eco-hero'>
-                <div class='eyebrow'>Planetary data. Local understanding.</div><h1>See the environment.<br>Understand the evidence.</h1>
-                <p>Explore satellite observations, climate patterns and ecological records in one place. Turn your study area into maps, analysis and a report you can trace to its sources.</p>
-                <span class='pill'>Satellite + GIS</span><span class='pill'>Climate + water</span><span class='pill'>AI-assisted analysis</span></div>""")
-        with picture_col:
-            show_artwork("VvwKz.jpg", caption="Illustrative artwork · not a live observation")
+    st.html("""<div class='eco-hero'>
+        <div class='eyebrow'>Planetary data. Local understanding.</div><h1>See the environment.<br>Understand the evidence.</h1>
+        <p>Explore satellite observations, climate patterns and ecological records in one place. Turn your study area into maps, analysis and a report you can trace to its sources.</p>
+        <span class='pill'>Satellite + GIS</span><span class='pill'>Climate + water</span><span class='pill'>AI-assisted analysis</span></div>""")
     st.write("")
     c1,c2,c3 = st.columns(3)
     c1.button("Start a new analysis", type="primary", width="stretch", on_click=go_page, args=("Study & analysis",))
     c2.button("Open reports", width="stretch", on_click=go_page, args=("Reports & sources",))
-    c3.button("Open AI team", width="stretch", icon=":material/psychology:", on_click=go_page, args=("AI team",))
+    c3.button("Open AI team", width="stretch", on_click=go_page, args=("AI team",))
     cards = [
-        ("7k1LB.jpg", "01 / EARTH OBSERVATION", "Satellite & water", "Inspect real Sentinel-2 scenes, screened water extent, vegetation and optical water indicators."),
-        ("GtSha.jpg", "02 / SPATIAL CONTEXT", "Maps that explain", "Draw a study boundary, inspect layers and export georeferenced results for QGIS."),
-        ("f9fOM.jpg", "03 / LIVING SYSTEMS", "Ecology & field evidence", "Explore recorded species and connect your own water-sampling observations to the map."),
+        ("01 / EARTH OBSERVATION", "Satellite & water", "Inspect real Sentinel-2 scenes, screened water extent, vegetation and optical water indicators."),
+        ("02 / SPATIAL CONTEXT", "Maps that explain", "Draw a study boundary, inspect layers and export georeferenced results for QGIS."),
+        ("03 / LIVING SYSTEMS", "Ecology & field evidence", "Explore recorded species and connect your own water-sampling observations to the map."),
     ]
-    for i, (column, (img, tag, title, desc)) in enumerate(zip(st.columns(3), cards)):
+    for i, (column, (tag, title, desc)) in enumerate(zip(st.columns(3), cards)):
         with column:
-            with st.container(border=True, key=f"art-card-{i}"):
-                show_artwork(img)
-                st.html(f"<div class='art-copy'><span class='tag'>{tag}</span><h3>{title}</h3><p>{desc}</p><span class='credit'>Concept artwork</span></div>")
-    icons = [("zLUGG.jpg", "Traceable observations", "Acquisition date, resolution and processing method."),
-             ("oD9yE.jpg", "A defined study area", "Coordinates, a drawn polygon or a GeoJSON boundary."),
-             ("HwiJj.jpg", "Evidence for decisions", "Charts, tables, maps and practical follow-up.")]
-    for i, (column, (img, title, desc)) in enumerate(zip(st.columns(3), icons)):
+            with st.container(border=True, key=f"card-{i}"):
+                st.html(f"<div class='card-copy'><span class='tag'>{tag}</span><h3>{title}</h3><p>{desc}</p></div>")
+    infos = [("Traceable observations", "Acquisition date, resolution and processing method."),
+             ("A defined study area", "Coordinates, a drawn polygon or a GeoJSON boundary."),
+             ("Evidence for decisions", "Charts, tables, maps and practical follow-up.")]
+    for i, (column, (title, desc)) in enumerate(zip(st.columns(3), infos)):
         with column:
-            with st.container(border=True, key=f"art-icon-{i}"):
-                picture_col, text_col = st.columns([1, 2.6])
-                with picture_col:
-                    show_artwork(img, width=76)
-                with text_col:
-                    st.html(f"<div class='art-copy'><strong>{title}</strong><p>{desc}</p></div>")
+            with st.container(border=True, key=f"info-{i}"):
+                st.html(f"<div class='card-copy'><strong>{title}</strong><p>{desc}</p></div>")
     if run:
         st.subheader("Your latest analysis")
         st.caption(f"{run['study']['label']} · {run['study']['start']} to {run['study']['end']} · Run {run['id']}")
@@ -446,7 +398,7 @@ def module_view(run, module, charts=True):
 
 
 def satellite_page(run):
-    banner("Satellite & water","Surface observations, optical screening and areas to investigate.","7k1LB.jpg")
+    banner("Satellite & water","Surface observations, optical screening and areas to investigate.")
     if not need_run(run):
         return
     r = run["results"].get("Satellite",{}).get("raster")
@@ -467,7 +419,7 @@ def satellite_page(run):
 
 
 def climate_page(run):
-    banner("Climate & air","Historical context and clearly dated model forecasts.","VvwKz.jpg")
+    banner("Climate & air","Historical context and clearly dated model forecasts.")
     if need_run(run):
         module_view(run,"Climate")
         st.divider()
@@ -475,7 +427,7 @@ def climate_page(run):
 
 
 def hazards_page(run):
-    banner("Hazards & outlooks","River-flow forecasts, earthquake observations and supported official alerts.","GtSha.jpg")
+    banner("Hazards & outlooks","River-flow forecasts, earthquake observations and supported official alerts.")
     if not need_run(run):
         return
     st.warning("EcoScope is a research workbench. Discharge forecasts are not inundation maps; earthquake event histories do not predict future events.")
@@ -488,7 +440,7 @@ def hazards_page(run):
 
 
 def ecology_page(run):
-    banner("Ecology & citizen evidence","Connect recorded biodiversity with measurements collected on the ground.","5Foay.jpg")
+    banner("Ecology & citizen evidence","Connect recorded biodiversity with measurements collected on the ground.")
     if not need_run(run):
         return
     st.subheader("Add field measurements")
@@ -658,20 +610,20 @@ def reports_page(run):
         for module,error in run["errors"].items():
             st.warning(f"{module}: {error}")
     with st.expander("Data access, attribution and operational limits"):
-        st.write("Open-Meteo hosted free access is for non-commercial use and has quotas. Include attribution to Open-Meteo and the underlying data providers. Sentinel imagery: Copernicus Sentinel data via Earth Search. GBIF records retain contributor and licence fields. Maps: © OpenStreetMap contributors. Artwork was supplied by the project owner and is illustrative.")
+        st.write("Open-Meteo hosted free access is for non-commercial use and has quotas. Include attribution to Open-Meteo and the underlying data providers. Sentinel imagery: Copernicus Sentinel data via Earth Search. GBIF records retain contributor and licence fields. Maps: © OpenStreetMap contributors.")
         st.write("The app caches public provider responses and limits retries and satellite processing. Satellite scenes may be old or cloudy, and coarse model grids cannot resolve every local condition. Baselines, forecasts and observations are labelled separately.")
         st.write("Scope: bounded-area research MVP. Persistent multi-user projects, validated local flood models, calibrated water-quality concentrations and autonomous emergency alerts require additional infrastructure and validation.")
         st.markdown("[Open-Meteo terms](https://open-meteo.com/en/terms) · [Open-Meteo pricing/access](https://open-meteo.com/en/pricing) · [OpenStreetMap attribution](https://www.openstreetmap.org/copyright)")
 
 
 def main():
-    st.set_page_config(page_title="EcoScope AI | Environmental intelligence",page_icon="🌍",layout="wide",initial_sidebar_state="expanded")
+    st.set_page_config(page_title="EcoScope AI | Environmental intelligence",layout="wide",initial_sidebar_state="expanded")
     inject_theme()
     for key,value in {"study_label":"Rawal Lake, Islamabad","study_lat":33.700,"study_lon":73.120,"page":"Overview","use_boundary":False}.items():
         if key not in st.session_state:
             st.session_state[key] = value
     with st.sidebar:
-        st.html("<div class='eco-brand'><div class='eco-mark'>◈</div><div><strong>EcoScope <span style='color:#72E2C9'>AI</span></strong><small>Environmental intelligence</small></div></div>")
+        st.html("<div class='eco-brand'><div><strong>EcoScope <span style='color:#72E2C9'>AI</span></strong><small>Environmental intelligence</small></div></div>")
         page = st.radio("Workspace",PAGES,key="page",label_visibility="collapsed")
         st.divider()
         run = st.session_state.get("run")
@@ -689,11 +641,8 @@ def main():
         st.caption("Open data • Reproducible methods • Clear uncertainty")
     c1, c2, c3 = st.columns([2.6, 1, 1])
     c1.caption(f"ECOSCOPE AI {VERSION} · {page}")
-    c2.button("AI team", icon=":material/psychology:", width="stretch", key="always-ai", on_click=go_page, args=("AI team",))
-    c3.button("Study setup", icon=":material/map:", width="stretch", key="always-study", on_click=go_page, args=("Study & analysis",))
-    missing_art = [name for name in ARTWORK_FILES if not artwork_path(name)]
-    if missing_art:
-        st.warning("Some artwork files are missing. Upload the complete assets folder beside app.py: " + ", ".join(missing_art))
+    c2.button("AI team", width="stretch", key="always-ai", on_click=go_page, args=("AI team",))
+    c3.button("Study setup", width="stretch", key="always-study", on_click=go_page, args=("Study & analysis",))
     if run and run.get("version") != VERSION:
         st.warning("This saved analysis was generated by an earlier app version. Run environmental analysis again before using the new AI team and reports.")
         run = None
