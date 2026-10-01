@@ -1,4 +1,5 @@
 """A bounded Groq adapter for CrewAI, with session-private task storage."""
+
 from __future__ import annotations
 
 from collections import deque
@@ -82,6 +83,7 @@ class GroqEvidenceLLM(BaseLLM):
     Only role/content message fields are sent. No LiteLLM prompt cache metadata,
     implicit OpenAI credentials, arbitrary endpoints or provider-side tools.
     """
+
     _credential: str = PrivateAttr(default="")
     _budget: Any = PrivateAttr()
     _notify: Any = PrivateAttr(default=None)
@@ -132,8 +134,10 @@ class GroqEvidenceLLM(BaseLLM):
         payload = {"model": self.model, "messages": clean, "temperature": .1,
                    "max_completion_tokens": MAX_OUTPUT_TOKENS}
         if self.model in ("openai/gpt-oss-120b", "openai/gpt-oss-20b"):
+            # Groq's gpt-oss models reject reasoning_format (HTTP 400).
+            # include_reasoning=False hides the reasoning text instead.
             payload["reasoning_effort"] = "low"
-            payload["reasoning_format"] = "hidden"
+            payload["include_reasoning"] = False
         try:
             response = requests.post(
                 "https://api.groq.com/openai/v1/chat/completions", json=payload,
@@ -172,6 +176,7 @@ class GroqEvidenceLLM(BaseLLM):
 
 class SessionTaskOutputs:
     """Disable CrewAI's shared latest-kickoff SQLite log; the UI owns session output."""
+
     def reset(self):
         pass
 
