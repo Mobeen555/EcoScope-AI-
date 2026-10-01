@@ -1,4 +1,5 @@
 """Exactly five CrewAI agents, explicit task context, sequential evidence review."""
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -11,6 +12,14 @@ from crewai import Process, Task
 from agent_tools import make_tools
 from crew_runtime import CrewRunError, GroqEvidenceLLM, RunBudget, SessionCrew
 from evidence import EvidenceStore, json_text
+
+
+def load_agent_module(domain):
+    """Agent files may sit in the repository root or inside an agents/ folder."""
+    try:
+        return importlib.import_module(domain)
+    except ModuleNotFoundError:
+        return importlib.import_module("agents." + domain)
 
 
 def citation_guardrail(source_ids, max_chars, require_citation=False):
@@ -42,10 +51,7 @@ def build_crew(store, question, llm, activity, completed, progress=None):
     }
     for index, (domain, role, _) in enumerate(AGENT_ROSTER):
         tools = make_tools(store, domain, activity)
-       agent_module = importlib.import_module("agents." + domain)
-   except ModuleNotFoundError:
-       agent_module = importlib.import_module(domain)
-   agent = agent_module.build_agent(llm, tools)
+        agent = load_agent_module(domain).build_agent(llm, tools)
         agents.append(agent)
         # Reviewer's source packet is compact: prior tasks contain domain findings.
         packet = store.evidence(domain, compact=True)
@@ -118,7 +124,7 @@ def run_team(run, question, key, model=DEFAULT_MODEL, tokens_per_minute=DEFAULT_
         outcome["status"] = "complete"
     except Exception as exc:
         outcome["error"] = budget.error or (str(exc) if isinstance(exc, CrewRunError) else
-            f"The AI workflow stopped ({type(exc).__name__}). Completed notes and environmental results are preserved. Check model access and the supplied dependency versions.")
+                                            f"The AI workflow stopped ({type(exc).__name__}). Completed notes and environmental results are preserved. Check model access and the supplied dependency versions.")
     outcome["usage"] = {"requests": budget.calls, "prompt_tokens": budget.prompt_tokens,
                         "completion_tokens": budget.completion_tokens,
                         "seconds": round(time.monotonic() - started, 1)}
