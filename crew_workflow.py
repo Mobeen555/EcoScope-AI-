@@ -42,7 +42,10 @@ def build_crew(store, question, llm, activity, completed, progress=None):
     }
     for index, (domain, role, _) in enumerate(AGENT_ROSTER):
         tools = make_tools(store, domain, activity)
-        agent = importlib.import_module("agents." + domain).build_agent(llm, tools)
+       agent_module = importlib.import_module("agents." + domain)
+   except ModuleNotFoundError:
+       agent_module = importlib.import_module(domain)
+   agent = agent_module.build_agent(llm, tools)
         agents.append(agent)
         # Reviewer's source packet is compact: prior tasks contain domain findings.
         packet = store.evidence(domain, compact=True)
