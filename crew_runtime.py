@@ -153,7 +153,13 @@ class GroqEvidenceLLM(BaseLLM):
                 404: "Groq could not find this model. Check the model ID in the AI connection settings.",
                 429: "Groq's rate or token limit was reached. Wait before retrying; completed agent notes are preserved.",
             }
-            self._budget.fail(messages_by_status.get(response.status_code, f"Groq returned HTTP {response.status_code}. Check model support and account limits; the AI review stopped."))
+            detail = ""
+            try:
+                info = response.json().get("error", {})
+                detail = " Groq says: " + str(info.get("message", ""))[:350]
+            except Exception:
+                detail = ""
+            self._budget.fail(messages_by_status.get(response.status_code, f"Groq returned HTTP {response.status_code}. Check model support and account limits; the AI review stopped.") + detail)
         try:
             data = response.json()
             choice = data["choices"][0]
